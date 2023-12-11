@@ -1,182 +1,245 @@
-/**
- * Manages overall app functionality and navigation.
- * Uses the Navbar to help users navigate between different sections.
- * Provides a seamless experience for users to explore podcasts, manage favorites, and track listening history.
- */
-import { useEffect, useState } from "react";
-// import { Route, Switch } from 'react-router-dom';
-import "./App.css";
-import Navbar from "./components/Navbar";
-import Home from "./components/Home";
-import Favorite from "./components/Favorite";
-import ShowPodcast from "./components/ShowPodcast";
-import History from "./components/History";
-import Authentication from "./components/loginForm";
-import SocialMediaLinks from "./components/SocialMediaLinks";
-
-export default function App() {
-    /**
-     * State variables for managing the current page, selected podcast, and favorite episodes
-     */
-    const [currentPage, setCurrentPage] = useState(
-        localStorage.getItem("currentPage") || "home"
-    );
-    const [selectedPodcast, setSelectedPodcast] = useState(
-        JSON.parse(localStorage.getItem("selectedPodcast")) || null
-    );
-    const [favorites, setFavorites] = useState(
-        JSON.parse(localStorage.getItem("favoriteEpisodes")) || []
-    );
-
-    /**
-     * Function to handle navigation to different pages
-     * This code is sorting the genreFilteredPodcasts array based on a specified sortOption.
-     * It uses the sort method and a custom comparator function to determine the order of elements
-     */
-    const handleNavigation = (page) => {
-        setCurrentPage(page);
-    };
-
-    /**
-     * State variables for listening history and the last listened episode
-     */
-    const [listeningHistory, setListeningHistory] = useState([]);
-    const [setLastListened] = useState(null);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    /**
-     * Function to handle episode completion and update listening history
-     */
-    const handleEpisodeComplete = (episode) => {
-        if (!listeningHistory.some((item) => item.id === episode.id)) {
-            setListeningHistory((prevHistory) => [...prevHistory, episode]);
-        }
-    };
-
-    /**
-     * Function to handle episode progress and set last listened episode
-     */
-    const handleEpisodeProgress = (episode, currentTime) => {
-        if (currentTime >= episode.duration - 10) {
-            setLastListened({
-                show: episode.show,
-                episode: episode.title,
-                progress: currentTime,
-            });
-        }
-    };
-
-    /**
-     * Function to handle favorite button click and update favorites
-     * The handleFavoriteClick function you provided is designed to handle
-     * the click event when a user wants to mark an episode as a favorite
-     */
-    const handleFavoriteClick = (episode) => {
-        if (!favorites.some((fav) => fav.id === episode.id)) {
-            setFavorites((prevFavorites) => [...prevFavorites, episode]);
-        }
-    };
-
-    /**
-     * In React, the useEffect hook is used to perform side effects in function components.
-     * It establishes a relationship between the component and certain aspects of the component's
-     * lifecycle or external events
-     */
-
-    /**
-     * Save the current page and selected podcast in localStorage whenever they change
-     * The useEffect hook you provided is used to persistently store values in the localStorage
-     * whenever the currentPage or selectedPodcast dependencies change
-     */
-    useEffect(() => {
-        localStorage.setItem("currentPage", currentPage);
-        localStorage.setItem(
-            "selectedPodcast",
-            JSON.stringify(selectedPodcast)
-        );
-    }, [currentPage, selectedPodcast]);
-
-    /**
-     * Save the favorite episodes in localStorage whenever the favorites change
-     */
-    useEffect(() => {
-        localStorage.setItem("favoriteEpisodes", JSON.stringify(favorites));
-    }, [favorites]);
-
-    /**
-     *  Add event listener for the beforeunload event to reset the current page when leaving the app
-     */
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            if (currentPage !== "home") {
-                setCurrentPage("home");
-            }
-        };
-        /**
-         * The 'beforeunload' event is triggered just before the document is about to be unloaded,
-         * which can happen when the user closes the browser tab or window, navigates to a different page, or attempts to close the browser
-         */
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [currentPage]);
-
-    /**
-     * Render the App component with conditional rendering based on the current page
-     */
-    return (
-        <>
-            {/* <switch> */}
-            {isAuthenticated === false ? (
-                <Authentication
-                    email={email}
-                    setEmail={setEmail}
-                    password={password}
-                    setPassword={setPassword}
-                    isAuthenticated={isAuthenticated}
-                    setIsAuthenticated={setIsAuthenticated}
-                />
-            ) : (
-                <>
-                    <Navbar onNavigate={handleNavigation} />
-                    <br />
-                    <br />
-                    {currentPage === "home" && (
-                        <>
-                            <Home
-                                onPodcastClick={setSelectedPodcast}
-                                selectedPodcast={selectedPodcast}
-                            />
-                            {/* <Route path="/Home" exact component={Home} /> */}
-                        </>
-                    )}
-                    {currentPage === "favorite" && (
-                        <>
-                            <Favorite
-                                favorites={favorites}
-                                setFavorites={setFavorites}
-                            />
-                            {/* <Route path="/Favorite" component={Favorite} /> */}
-                        </>
-                    )}
-                    {currentPage === "preview" && (
-                        <ShowPodcast
-                            podcastId={selectedPodcast?.id}
-                            onFavoriteClick={handleFavoriteClick}
-                            onEpisodeComplete={handleEpisodeComplete}
-                            onEpisodeProgress={handleEpisodeProgress}
-                        />
-                    )}
-                    {currentPage === "history" && <History />}
-                    {/* <Route path="/History" component={History} /> */}
-                    <SocialMediaLinks />
-                </>
-            )}
-            {/* </switch> */}
-        </>
-    );
+/* -------------------------------------------- MY COMPONENT STYLING -------------------------------------------- */
+/* -------------------------------------------- ABOUT --------------------------------------------  */
+.about--section {
+  color: white;
 }
+.about--section h3{
+  color: white;
+}
+/* ------------------------------------------- NAVBAR ------------------------------------------- */
+.navbar-container {
+  background-color: transparent; 
+  position: absolute;
+  border-radius: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 0 100px;
+  box-shadow: none;
+}
+.navbar-container button {
+  background-color: #7e3571;
+  box-shadow: 0px 2.98256px 7.4564px rgba(10, 10, 10, 10);
+  color: #ffffff;
+  border: none;
+  border-radius: 20rem;
+  padding: 10px 20px;
+  margin: 0 1rem;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.8s ease, box-shadow 0.3s ease; /* Add a transition for smooth effect */
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* ------------------------------------------- HOME ------------------------------------------- */
+.home-container {
+  text-align: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.802); 
+  color: #7e3571;
+}
+.titles {
+  display: inline-flex;
+  align-items: end;
+  margin-top: 2rem;
+}
+.main-heading {
+  font-family: 'Dancing Script', 'cursive';
+  color: #7e3571;
+  text-transform: uppercase;
+  letter-spacing: 0.5rem;
+  line-height: 1.2;
+  font-size: 3vw;
+  text-align: center;
+  box-shadow: 4rem 1rem 7px rgba(0, 0, 0, 0.2);
+}
+span {
+  display: block;
+  font-size: 5rem;
+  letter-spacing: 0.2rem;
+}
+.form-head {
+  display: flex;
+}
+h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+/* Display list style */
+.show-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+/* Display link style */
+.show-link {
+  text-decoration: none;
+  color: #eee;
+}
+/* Display info container style */
+.show--info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #555; 
+  border-radius: 4rem;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+/* Display image style */
+.show--image {
+  max-width: 20%;
+  object-fit: cover;
+  border-radius: 20%;
+  margin: auto;
+}
+.show--image--showPodcast {
+  max-width: 60%;
+}
+/* Display title style */
+.show--title {
+  color: white;
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+/* Show description style */
+.show--description {
+  font-size: 1rem;
+}
+/* Show info hover effect */
+.show-info:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Slightly darker box-shadow on hover with more depth */
+}
+.favorite--icon {
+  max-width: 4%;
+  position: absolute;
+  right: 42rem;
+}
+/* .show--seasons {
+  dis
+} */
+/* ------------------------------------------- SHOWPODCAST ------------------------------------------- */
+.showPodcast--container {
+  margin: 8rem;
+  padding: 15px;
+  border: 1px solid #ffffff; /* Darker border color */
+  border-radius: 8px;
+  background-color: black; /* Darker background color */
+}
+audio {
+  width: 100%;
+  margin-top: 10px;
+}
+/* Show the episodes List when the button is clicked */
+.episodes--list {
+  display: none;
+  padding: 10px;
+  border: 1px solid #7e3571; 
+  border-radius: 8px;
+  background-color: #00000042;
+}
+/* Add a class to show the episodes list */
+.show--episodes {
+  display: block !important;
+}
+/* ------------------------------------------- HOME ------------------------------------------- */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  padding: 20px;
+}
+.search--sort--container {
+  display: flex;
+  justify-content: flex-end; 
+  margin-bottom: 40px;
+}
+/* Apply margin-left: auto to the search bar element to push it to the right */
+.search-bar {
+  margin-left: auto;
+}
+input[type="text"] {
+  width: 55%;
+  padding: 10px;
+  margin-right: 10px;
+  border-radius: 20rem;
+  border: 3px #7e3571 solid;
+}
+select {
+  padding: 10px;
+  border-radius: 20rem;
+  border: 3px #7e3571 solid;
+}
+.show--list {
+  list-style-type: none;
+  padding: 0;
+}
+.show--info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #7e3571;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Initial shadow (gray) */
+  padding: 10px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease; /* Add a transition for a smooth effect */
+}
+.show--info:hover {
+  box-shadow: 2px 2px 4px black; /* Shadow when hovering (black) */
+}
+
+.show--details {
+  flex: 1;
+}
+/* ------------------------------------------- FAVORITE ------------------------------------------- */
+.favorite--container{
+  background-color: #00000035;
+}
+.favorite--items {
+  width:20%;
+  background-color: white;
+}
+.genres--container {
+  position: relative; 
+  top: -20px;
+}
+.loading--text {
+  padding-top: 5rem;
+  font-weight: bold;
+}
+
+/* -------------------------------------------- SOCIAL MEDIA ICONS -------------------------------------------- */
+.socialMediaLinks--Icons{
+  display: flex;
+  padding: 0.5rem;
+  background: linear-gradient(90deg, #060a0d 12%, #7e3a76 100%);
+}
+.icon--image {
+  max-width: 6%;
+  margin: auto ;
+}
+/* -------------------------------------------- FOOTER -------------------------------------------- */
+footer {
+  background: linear-gradient(90deg, #060a0d 12%, #7e3a76 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+}
+/* LoginForm */
+.main-heading {
+  color: white;
+}
+@media (min-width: 375px) {
+  .navbar-container button {
+    font-size: 1rem;
+    /* padding: 0rem 2rem; */
+  }
+  .showPodcast--container {
+    margin: 5rem;
+  }
+}
+/* ------------------------------------------- END OF COMPONENTS STYLE ------------------------------------------- */
